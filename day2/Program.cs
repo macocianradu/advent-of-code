@@ -1,4 +1,4 @@
-﻿var input = File.ReadLines("input/input1.txt");
+﻿var input = File.ReadLines(args[0]);
 
 var result = 0;
 
@@ -75,6 +75,3 @@ bool SplitIsSafe(List<int> levels, int i)
     }
     return lines.Any(l => LineIsSafe(l, true));
 }
-
-string ListString(List<int> list) =>
-        list.Select(l => l.ToString()).Aggregate((l1, l2) => l1 + " " + l2);
