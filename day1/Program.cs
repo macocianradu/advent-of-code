@@ -25,25 +25,25 @@ for(var i = 0; i < list1.Count; i++)
 var list1 = new Dictionary<int, int>();
 var list2 = new Dictionary<int, int>();
 
-foreach(var line in input) 
+foreach (var line in input)
 {
     var items = line.Split(' ');
     var int1 = int.Parse(items[0]);
     var int2 = int.Parse(items[1]);
-    if(list1.ContainsKey(int1))
+    if (list1.ContainsKey(int1))
     {
         list1[int1]++;
     }
-    else 
+    else
     {
         list1.Add(int1, 1);
     }
 
-    if(list2.ContainsKey(int2))
+    if (list2.ContainsKey(int2))
     {
         list2[int2]++;
     }
-    else 
+    else
     {
         list2.Add(int2, 1);
     }
@@ -51,12 +51,12 @@ foreach(var line in input)
 
 double result = 0;
 
-foreach(var item in list1.Keys) 
+foreach (var item in list1.Keys)
 {
-    if(list2.ContainsKey(item)) 
+    if (list2.ContainsKey(item))
     {
         result += item * list1[item] * list2[item];
     }
-} 
+}
 
 Console.WriteLine(result);
