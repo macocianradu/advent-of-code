@@ -4,6 +4,8 @@ var matrix = new List<List<char>>();
 
 List<int> xNeighbors = [-1, 0, 1, -1, 1, -1, 0, 1];
 List<int> yNeighbors = [-1, -1, -1, 0, 0, 1, 1, 1];
+List<int> leftDiags = [0, 7];
+List<int> rightDiags = [2, 5];
 
 for (var line = 0; line < input.Count(); line++)
 {
@@ -20,9 +22,43 @@ for (var y = 0; y < matrix.Count; y++)
 {
     for (var x = 0; x < matrix[y].Count; x++)
     {
-        for (var dir = 0; dir < xNeighbors.Count; dir++)
+        if (matrix[y][x] == 'A')
         {
-            result += ValidStrings(x, y, matrix, "XMAS", dir);
+            bool left = false;
+            for (var dir = 0; dir < leftDiags.Count; dir++)
+            {
+                var xNeighbor = xNeighbors[leftDiags[dir]];
+                var yNeighbor = yNeighbors[leftDiags[dir]];
+                if (!IsInside(x - xNeighbor, y - yNeighbor, matrix))
+                {
+                    continue;
+                }
+                if (ValidStrings(x - xNeighbor, y - yNeighbor, matrix, "MAS", leftDiags[dir]) > 0)
+                {
+                    left = true;
+                    break;
+                }
+            }
+            if (!left)
+            {
+                continue;
+            }
+
+            bool right = false;
+            for (var dir = 0; dir < rightDiags.Count; dir++)
+            {
+                var xNeighbor = xNeighbors[rightDiags[dir]];
+                var yNeighbor = yNeighbors[rightDiags[dir]];
+                if (!IsInside(x - xNeighbor, y - yNeighbor, matrix))
+                {
+                    continue;
+                }
+                if (ValidStrings(x - xNeighbor, y - yNeighbor, matrix, "MAS", rightDiags[dir]) > 0)
+                {
+                    right = true;
+                }
+            }
+            result += right ? 1 : 0;
         }
     }
 }
