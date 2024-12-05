@@ -41,18 +41,39 @@ Console.WriteLine(result);
 
 int LineCorrect(List<int> line)
 {
-    for (int i = 0; i < line.Count; i++)
+    var corrected = false;
+    var ok = false;
+    while (!ok)
     {
-        if (rules.TryGetValue(line[i], out List<int>? values))
+        ok = true;
+        for (int i = 0; i < line.Count; i++)
         {
-            foreach (var value in values)
+            if (rules.TryGetValue(line[i], out List<int>? values))
             {
-                if (line.Take(i).Contains(value))
+                foreach (var value in values)
                 {
-                    return 0;
+                    if (line.Take(i).Contains(value))
+                    {
+                        corrected = true;
+                        line.Remove(value);
+                        if (i + 1 > line.Count)
+                        {
+                            line.Add(value);
+                        }
+                        else
+                        {
+                            line.Insert(i + 1, value);
+                        }
+                        ok = false;
+                        break;
+                    }
                 }
             }
         }
+    }
+    if (!corrected)
+    {
+        return 0;
     }
     return line.Skip(line.Count / 2).ToList()[0];
 }
