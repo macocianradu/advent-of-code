@@ -1,18 +1,7 @@
 ﻿var input = File.ReadLines(args[0]);
-
-//encoding time
-int EMPTY = 0;
-int UP = 1;
-int LEFT = 10;
-int RIGHT = 100;
-int DOWN = 1000;
-int OBSTACLE = 10000;
-
-var matrix = new List<List<int>>();
-var objs = new List<(int x, int y)>();
-
-int startX = 0;
-int startY = 0;
+var matrix = new List<List<char>>();
+(int x, int y) position = (0, 0);
+List<(int x, int y)> path = [];
 char direction = '.';
 for (var y = 0; y < input.Count(); y++)
 {
@@ -21,141 +10,103 @@ for (var y = 0; y < input.Count(); y++)
     for (var x = 0; x < input.ElementAt(y).Length; x++)
     {
         char c = line[x];
-        if (c == '.')
+        matrix[y].Add(c);
+        if (c == '^' || c == '>' || c == 'v' || c == '<')
         {
-            matrix[y].Add(EMPTY);
-        }
-        if (c == '#')
-        {
-            matrix[y].Add(OBSTACLE);
-        }
-        if (c == '^')
-        {
-            matrix[y].Add(UP);
-            startX = x;
-            startY = y;
-            direction = c;
-        }
-        if (c == '>')
-        {
-            matrix[y].Add(RIGHT);
-            startX = x;
-            startY = y;
-            direction = c;
-        }
-        if (c == 'v')
-        {
-            matrix[y].Add(DOWN);
-            startX = x;
-            startY = y;
-            direction = c;
-        }
-        if (c == '<')
-        {
-            matrix[y].Add(LEFT);
-            startX = x;
-            startY = y;
+            position = (x, y);
             direction = c;
         }
     }
 }
 
-Walk(startX, startY, direction, matrix, 0, true);
-Console.WriteLine(objs.Contains((startX, startY)));
-Console.WriteLine(objs.Count);
 
-//true loop
-//false exit
-bool Walk(int x, int y, char dir, List<List<int>> matrix, int id, bool parent)
+var original = CopyMatrix(matrix);
+
+var (startX, startY) = position;
+var startDir = direction;
+
+List<(int x, int y)> Walk(int x, int y, char dir, List<List<char>> matrix)
 {
+    var path = new List<(int x, int y)>();
     while (!Finish(x, y, matrix))
     {
-        //if (id == 41)
-        //{
-        //    Console.Clear();
-        //    PrintState(x, y, dir, matrix);
-        //    Console.WriteLine(id);
-        //    Thread.Sleep(500);
-        //}
         var (dX, dY) = GetDirection(dir);
+
+        if (!path.Contains((x, y)))
+        {
+            path.Add((x, y));
+        }
         if (!IsBlocked(x + dX, y + dY, matrix))
         {
-            if (parent)
-            {
-                if (!Finish(x + dX, y + dY, matrix))
-                {
-                    var copy = CopyMatrix(matrix);
-                    copy[y + dY][x + dX] = OBSTACLE;
-                    if (Walk(x, y, dir, copy, id++, false))
-                    {
-                        if (!objs.Contains((x + dX, y + dY)))
-                        {
-                            objs.Add((x + dX, y + dY));
-                        }
-                    }
-                }
-            }
-            var value = GetDirValue(dir);
             x += dX;
             y += dY;
-            if (Finish(x, y, matrix))
-            {
-                break;
-            }
-            if (Walked(matrix[y][x], value))
-            {
-                return true;
-            }
-            matrix[y][x] += GetDirValue(dir);
             continue;
         }
         dir = GetNextDirection(dir);
     }
-    return false;
+    return path;
 }
+path = Walk(position.x, position.y, direction, matrix);
 
-bool Walked(int cellValue, int dirValue)
+var options = new List<List<List<char>>>();
+path.ForEach((p) =>
 {
-    var modValue = dirValue == 1 ? 2 : dirValue;
-    return cellValue / dirValue % modValue == 1;
-}
+    var copy = CopyMatrix(original);
+    copy[p.y][p.x] = '#';
+    options.Add(copy);
+});
 
-void PrintState(int x, int y, char dir, List<List<int>> matrix)
+var result = 0;
+//options.ForEach(o => { if (IsLoop(startX, startY, startDir, o)) result++; });
+Parallel.ForEach(options, option =>
 {
-    for (int j = 0; j < matrix.Count; j++)
+    if (IsLoop(startX, startY, startDir, option))
     {
-        for (int i = 0; i < matrix[y].Count; i++)
-        {
-            Console.Write(' ');
-            if (j == y && x == i)
-            {
-                Console.Write(direction);
-                continue;
-            }
-            Console.Write(GetChar(matrix[j][i]));
-        }
-        Console.WriteLine();
+        Interlocked.Increment(ref result);
     }
-    Console.WriteLine();
+});
+
+Console.WriteLine(result);
+
+bool IsLoop(int startX, int startY, char dir, List<List<char>> matrix)
+{
+    int steps = 0;
+    while (!Finish(startX, startY, matrix)
+            && steps <= matrix[0].Count * matrix[0].Count)
+    {
+        var (x, y) = GetDirection(dir);
+
+        if (!IsBlocked(startX + x, startY + y, matrix))
+        {
+            startX = startX + x;
+            startY = startY + y;
+            steps++;
+            continue;
+        }
+        dir = GetNextDirection(dir);
+        steps++;
+    }
+
+    return steps >= matrix[0].Count * matrix[0].Count;
 }
 
+Console.WriteLine(path.Count);
 
-bool IsBlocked(int x, int y, List<List<int>> matrix)
+bool IsBlocked(int x, int y, List<List<char>> matrix)
 {
     if (Finish(x, y, matrix))
     {
         return false;
     }
-    return matrix[y][x] == OBSTACLE;
+    return matrix[y][x] == '#';
 }
 
-
-bool Finish(int x, int y, List<List<int>> matrix)
+bool Finish(int x, int y, List<List<char>> matrix)
 {
     return x < 0
-        || y < 0
-        || y >= matrix.Count
-        || x >= matrix[y].Count;
+    || y < 0
+    || y >= matrix.Count
+    || x >= matrix[y].Count;
 }
 
 char GetNextDirection(char c)
@@ -166,21 +117,6 @@ char GetNextDirection(char c)
         case '>': { return 'v'; }
         case '<': { return '^'; }
         case 'v': { return '<'; }
-        default:
-            {
-                throw new Exception($"Char {c} is not a valid guard direction");
-            }
-    }
-}
-
-int GetDirValue(char c)
-{
-    switch (c)
-    {
-        case '^': { return UP; }
-        case '>': { return RIGHT; }
-        case '<': { return LEFT; }
-        case 'v': { return DOWN; }
         default:
             {
                 throw new Exception($"Char {c} is not a valid guard direction");
@@ -203,41 +139,16 @@ int GetDirValue(char c)
     }
 }
 
-List<List<int>> CopyMatrix(List<List<int>> matrix)
+List<List<char>> CopyMatrix(List<List<char>> original)
 {
-    var copy = new List<List<int>>();
+    List<List<char>> copy = [];
     for (int y = 0; y < matrix.Count; y++)
     {
         copy.Add([]);
         for (int x = 0; x < matrix[y].Count; x++)
         {
-            copy[y].Add(matrix[y][x]);
+            copy[y].Add(original[y][x]);
         }
     }
     return copy;
-}
-
-char GetChar(int cell)
-{
-    switch (cell)
-    {
-        case 0: return '.';
-        case 1: return '↑';
-        case 10: return '←';
-        case 11: return '↖';
-        case 100: return '→';
-        case 101: return '↗';
-        case 110: return '⇄';
-        case 111: return '↟';
-        case 1000: return '↓';
-        case 1001: return '↕';
-        case 1010: return '↙';
-        case 1011: return '↞';
-        case 1100: return '↘';
-        case 1101: return '↠';
-        case 1110: return '↡';
-        case 1111: return '*';
-        case 10000: return '#';
-        default: throw new Exception("Invalid value");
-    }
 }
