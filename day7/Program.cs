@@ -73,9 +73,6 @@ double Test(double result, List<int> operations, List<double> values)
     {
         return result;
     }
-    // Console.Write(result + " - " + val + " ");
-    // operations.ForEach(p => Console.Write(p + " "));
-    // Console.WriteLine();
     return 0;
 }
 
