@@ -40,15 +40,28 @@ void SetAntinodes(List<(int x, int y)> antennas, int xBound, int yBound)
             {
                 continue;
             }
-            int dx = Math.Abs(x1 - x);
-            int dy = Math.Abs(y1 - y);
-            int ax = x > x1 ? x + dx : x - dx;
-            int ay = y > y1 ? y + dy : y - dy;
-            if (Inside(ax, ay, xBound, yBound))
+            int dx = x >= x1 ? x1 - x : -(x - x1);
+            int dy = y >= y1 ? y1 - y : -(y - y1);
+            int low = LowestMultiplier(x, dx, xBound);
+            int high = HighestMultiplier(x, dx, xBound);
+            if (low > high)
             {
-                if (!antinodes.Contains((ax, ay)))
+                var t = low;
+                low = high;
+                high = low;
+            }
+            for (int mul = low;
+                    mul <= high;
+                    mul++)
+            {
+                int ax = x + dx * mul;
+                int ay = y + dy * mul;
+                if (Inside(ax, ay, xBound, yBound))
                 {
-                    antinodes.Add((ax, ay));
+                    if (!antinodes.Contains((ax, ay)))
+                    {
+                        antinodes.Add((ax, ay));
+                    }
                 }
             }
         }
@@ -58,4 +71,33 @@ void SetAntinodes(List<(int x, int y)> antennas, int xBound, int yBound)
 static bool Inside(int x, int y, int xBound, int yBound)
 {
     return x >= 0 && x < xBound && y >= 0 && y < yBound;
+}
+
+static int LowestMultiplier(int x, int dx, int bound)
+{
+    int mul = 0;
+    if (dx == 0)
+    {
+        return 0;
+    }
+    while (x + dx * mul >= 0 && x + dx * mul < bound)
+    {
+        mul--;
+    }
+
+    return mul;
+}
+
+static int HighestMultiplier(int x, int dx, int bound)
+{
+    int mul = 0;
+    if (dx == 0)
+    {
+        return 0;
+    }
+    while (x + dx * mul >= 0 && x + dx * mul < bound)
+    {
+        mul++;
+    }
+    return mul;
 }
