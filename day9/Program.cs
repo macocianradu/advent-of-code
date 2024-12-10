@@ -21,6 +21,16 @@ for (var id = 0; id < disk.Count; id += 2)
 }
 
 var solution = Arrange(ids);
+//for (var i = 0; i < solution.Count; i++)
+//{
+//    if (solution[i] == -1)
+//    {
+//        Console.Write('.');
+//        continue;
+//    }
+//    Console.Write(solution[i]);
+//}
+//Console.WriteLine();
 var result = CheckSum(solution);
 Console.WriteLine(result);
 
@@ -40,31 +50,68 @@ static double CheckSum(List<int> ids)
 
 static List<int> Arrange(List<int> ids)
 {
-    for (int i = 1; i < ids.Count; i++)
+    var id = ids.Last();
+
+    Console.WriteLine("id: " + id + " size: ");
+    while (id >= 0)
     {
-        if (ids[i] > -1)
-        {
-            continue;
-        }
-        var pos = FindLastIdPos(ids);
-        if (pos < i)
-        {
-            break;
-        }
-        ids[i] = ids[pos];
-        ids[pos] = -1;
+        var pos = FindIdPos(ids, id);
+        var size = ContinousRegionSize(ids, pos);
+        Console.WriteLine("id: " + id + " size: " + size);
+        Swap(ids, pos, size);
+        id--;
     }
     return ids;
 }
 
-static int FindLastIdPos(List<int> ids)
+static List<int> Swap(List<int> ids, int pos, int size)
+{
+    var value = ids[pos];
+    for (int i = 0; i < pos; i++)
+    {
+        if (ids[i] != -1)
+        {
+            continue;
+        }
+        if (size <= ContinousRegionSize(ids, i))
+        {
+            while (size > 0)
+            {
+                ids[i] = value;
+                ids[pos] = -1;
+                i++;
+                pos++;
+                size--;
+            }
+        }
+    }
+    return ids;
+}
+
+static int FindIdPos(List<int> ids, int id)
 {
     for (int i = ids.Count - 1; i >= 0; i--)
     {
-        if (ids[i] > -1)
+        if (ids[i] == id)
         {
+            while (ids[i - 1] == id && i - 1 > 0)
+            {
+                i--;
+            }
             return i;
         }
     }
     return 0;
+}
+
+static int ContinousRegionSize(List<int> ids, int index)
+{
+    var space = 0;
+    var value = ids[index];
+    while (index < ids.Count && ids[index] == value)
+    {
+        space++;
+        index++;
+    }
+    return space;
 }
