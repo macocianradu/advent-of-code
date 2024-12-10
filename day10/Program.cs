@@ -18,7 +18,9 @@ var result = 0;
 var heads = GetTrailheads(matrix);
 heads.ForEach(h =>
 {
-    result += GetTrailheadScore(h.x, h.y, matrix, []).Count;
+    List<List<(int x, int y)>> trails = [];
+    GetTrailheadScore(h.x, h.y, matrix, trails);
+    result += trails.Distinct().ToList().Count;
 });
 
 Console.WriteLine(result);
@@ -39,12 +41,12 @@ List<(int x, int y)> GetTrailheads(List<List<int>> map)
     return heads;
 }
 
-HashSet<(int x, int y)> GetTrailheadScore(int x, int y, List<List<int>> map, HashSet<(int x, int y)> result)
+bool GetTrailheadScore(int x, int y, List<List<int>> map, List<List<(int x, int y)>> result)
 {
     if (map[y][x] == 9)
     {
-        result.Add((x, y));
-        return result;
+        result.Add([(x, y)]);
+        return true;
     }
     int value = map[y][x];
     for (int i = 0; i < 4; i++)
@@ -54,15 +56,21 @@ HashSet<(int x, int y)> GetTrailheadScore(int x, int y, List<List<int>> map, Has
             var nextVal = map[y + neighborY[i]][x + neighborX[i]];
             if (nextVal == value + 1)
             {
-                var peaks = GetTrailheadScore(x + neighborX[i], y + neighborY[i], map, result);
-                foreach (var peak in peaks)
+                if (GetTrailheadScore(x + neighborX[i], y + neighborY[i], map, result))
                 {
-                    result.Add(peak);
+                    foreach (var peak in result)
+                    {
+                        peak.Add((x, y));
+                    }
                 }
             }
         }
     }
-    return result;
+    if (result.Count > 0)
+    {
+        return true;
+    }
+    return false;
 
 }
 
