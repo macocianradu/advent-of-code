@@ -1,35 +1,50 @@
 ﻿var input = File.ReadLines(args[0]);
 string line = new([.. input.ElementAt(0)]);
 
-List<double> stones = line.Split(' ').Select(double.Parse).ToList();
+List<double> stones = new(line.Split(' ').Select(double.Parse).ToList());
+Dictionary<(double stone, int blinks), double> cache = [];
 
-for (int i = 0; i < 75; i++)
+double result = 0;
+foreach (var stone in stones)
 {
-    Console.WriteLine(i);
-    List<double> newStones = [];
-    for (int s = 0; s < stones.Count; s++)
-    {
-        if (stones[s] == 0)
-        {
-            stones[s] = 1;
-            continue;
-        }
-        var str = stones[s].ToString();
-        var digits = str.Length;
-        if (digits % 2 == 0)
-        {
-            if (!double.TryParse(str[..(digits / 2)], out double newValue))
-            {
-                newValue = 0;
-            }
-            double newStone = double.Parse(str[(digits / 2)..]);
-            newStones.Add(newStone);
-            stones[s] = newValue;
-            continue;
-        }
-        stones[s] *= 2024;
-    }
-    stones.AddRange(newStones);
+    result += Stones(75, stone);
 }
 
-Console.WriteLine(stones.Count);
+Console.WriteLine(result);
+
+double Stones(int blinks, double stone)
+{
+    if (blinks == 0)
+    {
+        return 1;
+    }
+    double res = 0;
+    if (cache.ContainsKey((stone, blinks)))
+    {
+        return cache[(stone, blinks)];
+    }
+    if (stone == 0)
+    {
+        res = Stones(blinks - 1, 1);
+        cache.Add((stone, blinks), res);
+        return res;
+    }
+    string str = stone.ToString();
+    if (str.Length % 2 == 0)
+    {
+        if (!double.TryParse(str[..(str.Length / 2)], out double newValue))
+        {
+            newValue = 0;
+        }
+        double newStone = double.Parse(str[(str.Length / 2)..]);
+
+        res = Stones(blinks - 1, newValue);
+        res += Stones(blinks - 1, newStone);
+        cache.Add((stone, blinks), res);
+        return res;
+    }
+
+    res = Stones(blinks - 1, stone * 2024);
+    cache.Add((stone, blinks), res);
+    return res;
+}
