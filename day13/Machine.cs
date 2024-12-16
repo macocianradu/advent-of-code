@@ -15,7 +15,6 @@ public class Machine((int x, int y) ButtonA, (int x, int y) ButtonB, (int x, int
         double a = sol / aCoef;
         double b = (Prize.x - (ButtonA.x * a)) / ButtonB.x;
 
-        Console.WriteLine("a: " + a + " b: " + b);
         if (Math.Floor(a) != a || Math.Floor(b) != b)
         {
             return long.MaxValue;
