@@ -4,7 +4,8 @@ public class Robot((int x, int y) Position, (int x, int y) Velocity)
 {
     public (int x, int y) Position = Position;
     public (int x, int y) Velocity = Velocity;
-    public (int x, int y) Move(int positions, int width, int height)
+
+    public void Move(int positions, int width, int height)
     {
         var x = Position.x + Velocity.x * positions;
         x %= width;
@@ -19,6 +20,7 @@ public class Robot((int x, int y) Position, (int x, int y) Velocity)
             y = height + y;
         }
 
-        return (x, y);
+        Position.x = x;
+        Position.y = y;
     }
 }

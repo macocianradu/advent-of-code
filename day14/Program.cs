@@ -21,35 +21,64 @@ var q1 = 0;
 var q2 = 0;
 var q3 = 0;
 var q4 = 0;
-robots.ForEach(r =>
+var steps = 0;
+while (true)
+{
+    steps++;
+    robots.ForEach(r =>
+            {
+                r.Move(1, width, height);
+                if (r.Position.x < width / 2)
+                {
+                    if (r.Position.y < height / 2)
+                    {
+                        q1++;
+                    }
+                    else if (r.Position.y > height / 2)
+                    {
+                        q3++;
+                    }
+                }
+                else if (r.Position.x > width / 2)
+                {
+                    if (r.Position.y < height / 2)
+                    {
+                        q2++;
+                    }
+                    else if (r.Position.y > height / 2)
+                    {
+                        q4++;
+                    }
+                }
+            });
+    foreach (var robo in robots)
+    {
+        if (robots.Find(r =>
+                    r.Position.x == robo.Position.x
+                    && r.Position.y == robo.Position.y - 1) is not null &&
+            robots.Find(r =>
+                    r.Position.x == robo.Position.x
+                    && r.Position.y == robo.Position.y - 2) is not null &&
+            robots.Find(r =>
+                    r.Position.x == robo.Position.x
+                    && r.Position.y == robo.Position.y - 3) is not null &&
+            robots.Find(r =>
+                    r.Position.x == robo.Position.x
+                    && r.Position.y == robo.Position.y - 4) is not null &&
+            robots.Find(r =>
+                    r.Position.x == robo.Position.x
+                    && r.Position.y == robo.Position.y - 5) is not null &&
+            robots.Find(r =>
+                    r.Position.x == robo.Position.x
+                    && r.Position.y == robo.Position.y - 6) is not null)
         {
-            var (x, y) = r.Move(100, width, height);
-            Console.WriteLine((x, y));
-            if (x < width / 2)
-            {
-                if (y < height / 2)
-                {
-                    q1++;
-                }
-                else if (y > height / 2)
-                {
-                    q3++;
-                }
-            }
-            else if (x > width / 2)
-            {
-                if (y < height / 2)
-                {
-                    q2++;
-                }
-                else if (y > height / 2)
-                {
-                    q4++;
-                }
-            }
-        });
-
-Console.WriteLine(q1 * q2 * q3 * q4);
+            Console.Clear();
+            Console.WriteLine(steps);
+            PrintPosition(robots);
+            Thread.Sleep(1000);
+        }
+    }
+}
 
 void PrintPosition(List<Robot> robots)
 {
