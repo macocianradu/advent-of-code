@@ -21,56 +21,86 @@ for (var y = 0; y < matrix.Count; y++)
     {
         if (char.IsUpper(matrix[y][x]))
         {
-            Console.Write(matrix[y][x]);
-            (int p, int a) = GetRegion((0, 1), x, y, matrix);
-            Console.WriteLine(": " + p + " * " + a);
-            result += p * a;
+            var (edges, area) = GetRegion(([], 1), x, y, matrix);
+            result += edges.Count * area;
         }
     }
 }
 
 Console.WriteLine(result);
 
-(int permineter, int area) GetRegion((int perimeter, int area) fence,
+(List<(List<(int x, int y)> edge, int dir)> edges, int area) GetRegion(
+        (List<(List<(int x, int y)> edge, int dir)> edges, int area) fence,
         int x,
         int y,
         List<List<char>> map)
 {
     char value = map[y][x];
-    // Console.Clear();
-    // PrintMap(map);
-    // Thread.Sleep(500);
+    //Console.Clear();
+    //PrintMap(map);
+    //Thread.Sleep(500);
     map[y][x] = char.ToLower(value);
     for (int i = 0; i < 4; i++)
     {
         if (!IsInside(x + neighborX[i], y + neighborY[i], map))
         {
-            fence.perimeter++;
+            AddEdge(fence.edges, x, y, i);
             continue;
         }
         var neighbor = map[y + neighborY[i]][x + neighborX[i]];
         if (neighbor == value)
         {
-            fence = GetRegion((fence.perimeter, fence.area + 1),
+            fence = GetRegion((fence.edges, fence.area + 1),
                     x + neighborX[i],
                     y + neighborY[i],
                     map);
             continue;
         }
-        if (neighbor != map[y][x])
+        if (char.ToLower(value) != char.ToLower(neighbor))
         {
-            fence.perimeter++;
+            AddEdge(fence.edges, x, y, i);
         }
     }
     return fence;
 }
 
-bool IsInside(int x, int y, List<List<char>> map)
+static bool IsInside(int x, int y, List<List<char>> map)
 {
     return x >= 0 && y >= 0 && y < map.Count && x < map[y].Count;
 }
 
-void PrintMap(List<List<char>> map)
+
+void AddEdge(List<(List<(int x, int y)> edge, int dir)> edges, int x, int y, int dir)
+{
+    var lines = edges.FindAll(e => e.dir == dir && (
+                e.edge.Contains((x, y + 1)) ||
+                e.edge.Contains((x, y - 1)) ||
+                e.edge.Contains((x - 1, y)) ||
+                e.edge.Contains((x + 1, y)))).ToList();
+    if (lines.Count == 0)
+    {
+        edges.Add(([(x, y)], dir));
+        return;
+    }
+    lines[0].edge.Add((x, y));
+    for (int i = 1; i < lines.Count; i++)
+    {
+        edges.Remove(lines[i]);
+        lines[0].edge.AddRange(lines[i].edge);
+    }
+}
+
+static void PrintEdges(List<(List<(int x, int y)> edge, int dir)> edges)
+{
+    foreach (var (edge, dir) in edges)
+    {
+        Console.Write(dir + ": ");
+        edge.ForEach(p => Console.Write(p));
+        Console.WriteLine();
+    }
+}
+
+static void PrintMap(List<List<char>> map)
 {
     for (int y = 0; y < map.Count; y++)
     {
