@@ -53,15 +53,15 @@ foreach (var c in moves)
     steps++;
     if (CanMove(matrix, pos.x, pos.y, c))
     {
-        Console.WriteLine(steps + " " + c + pos);
-        Move(matrix, pos.x, pos.y, c);
         pos.x += c == '>' ? 1 : 0;
         pos.x += c == '<' ? -1 : 0;
         pos.y += c == '^' ? -1 : 0;
         pos.y += c == 'v' ? 1 : 0;
+        //Console.WriteLine(steps + " " + c + pos);
+        Move(matrix, pos.x, pos.y, c);
     }
-    PrintMap(matrix);
-    Thread.Sleep(100);
+    //PrintMap(matrix);
+    //Thread.Sleep(100);
     Console.WriteLine();
 }
 
@@ -70,7 +70,7 @@ for (var y = 0; y < matrix.Count; y++)
 {
     for (var x = 0; x < matrix[y].Count; x++)
     {
-        if (matrix[y][x] == 'O')
+        if (matrix[y][x] == '[')
         {
             result += 100 * y + x;
         }
