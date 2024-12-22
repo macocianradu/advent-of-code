@@ -1,12 +1,12 @@
-﻿var input = File.ReadAllLines(args[0]);
+﻿var input = File.ReadAllLines("input/input1.txt");
 
 List<List<char>> track = [];
+var cheatSize = 20;
 List<int> xN = [1, 0, -1, 0];
 List<int> yN = [0, 1, 0, -1];
 (int x, int y) start = (0, 0);
-(int x, int y) end = (0, 0);
 List<List<int>> distances = [];
-Dictionary<(int x, int y), int> cheats = [];
+Dictionary<(int x, int y), List<((int x, int y) end, int score)>> cheats = [];
 
 for (var i = 0; i < input.Length; i++)
 {
@@ -19,10 +19,6 @@ for (var i = 0; i < input.Length; i++)
         {
             start = (x, i);
         }
-        if (track[i][x] == 'E')
-        {
-            end = (x, i);
-        }
         distances[i].Add(int.MaxValue);
     }
 }
@@ -33,18 +29,19 @@ for (int y = 1; y < track.Count - 1; y++)
 {
     for (int x = 1; x < track[y].Count - 1; x++)
     {
-        for (int i = 0; i < 4; i++)
+        if (track[y][x] != '#')
         {
-            if (PossibleCheat((x, y), track, i))
+            var possibleCheats = PossibleCheats((x, y), track, cheatSize);
+            List<((int x, int y) end, int score)> c = [];
+            foreach (var cheat in possibleCheats)
             {
-                (int x, int y) enter = (x - xN[i], y - yN[i]);
-                (int x, int y) exit = (x + xN[i], y + yN[i]);
-                var newDistance = distances[enter.y][enter.x] + 2;
-                if (distances[exit.y][exit.x] > newDistance)
+                var newDistance = cheat.distance + distances[y][x];
+                if (newDistance < distances[cheat.Item1.y][cheat.Item1.x])
                 {
-                    cheats.Add((x, y), distances[exit.y][exit.x] - newDistance);
+                    c.Add(((cheat.Item1.x, cheat.Item1.y), distances[cheat.Item1.y][cheat.Item1.x] - newDistance));
                 }
             }
+            cheats.Add((x, y), c);
         }
     }
 
@@ -55,36 +52,35 @@ Dictionary<int, int> results = [];
 
 foreach ((var key, var value) in cheats)
 {
-    if (value >= 100)
+    foreach ((var exit, var distance) in value)
     {
-        result++;
+        if (distance >= 100)
+        {
+            result++;
+        }
+        if (distance == 73)
+        {
+            Console.WriteLine(key + " - " + exit);
+        }
+        if (results.TryGetValue(distance, out int t))
+        {
+            results[distance] = ++t;
+            continue;
+        }
+        results.Add(distance, 1);
     }
-    if (results.TryGetValue(value, out int t))
-    {
-        results[value] = ++t;
-        continue;
-    }
-    results.Add(value, 1);
 }
 
-//foreach ((var key, var value) in results)
-//{
-//    Console.WriteLine(key + " - " + value);
-//}
+foreach ((var key, var value) in results)
+{
+    if (key > 50)
+    {
+        Console.WriteLine(key + " - " + value);
+    }
+}
 
 
 Console.WriteLine(result);
-
-void ResetDistances()
-{
-    for (int i = 0; i < distances.Count; i++)
-    {
-        for (int j = 0; j < distances[i].Count; j++)
-        {
-            distances[i][j] = int.MaxValue;
-        }
-    }
-}
 
 void SetDistances((int x, int y) position,
         int distance,
@@ -115,40 +111,36 @@ void SetDistances((int x, int y) position,
     }
 }
 
-bool PossibleCheat((int x, int y) position, List<List<char>> map, int dir)
+List<((int x, int y), int distance)> PossibleCheats((int x, int y) position,
+        List<List<char>> map,
+        int size)
 {
-    if (cheats.ContainsKey((position.x, position.y)))
+    List<((int x, int y), int distance)> possible = [];
+    for (int x = position.x - size; x <= position.x + size; x++)
     {
-        return false;
+        for (int y = position.y - size; y <= position.y + size; y++)
+        {
+            if (Inside((x, y), map))
+            {
+                if (map[y][x] != '#')
+                {
+                    var dist = Math.Abs(position.x - x) + Math.Abs(position.y - y);
+                    if (dist <= size)
+                    {
+                        possible.Add(((x, y),
+                            dist));
+                    }
+                }
+            }
+        }
     }
-    if (map[position.y][position.x] != '#')
-    {
-        return false;
-    }
-    (int x, int y) enter = (position.x - xN[dir], position.y - yN[dir]);
-    (int x, int y) exit = (position.x + xN[dir], position.y + yN[dir]);
-    return Inside(enter, map) && map[enter.y][enter.x] != '#' &&
-        Inside(exit, map) && map[exit.y][exit.x] != '#';
+    return possible;
 }
 
 static bool Inside<T>((int x, int y) position, List<List<T>> map)
 {
     return position.y >= 0 && position.y < map.Count
         && position.x >= 0 && position.x < map[position.y].Count;
-}
-
-static List<List<T>> Clone<T>(List<List<T>> original)
-{
-    List<List<T>> clone = [];
-    for (int y = 0; y < original.Count; y++)
-    {
-        clone.Add([]);
-        for (int x = 0; x < original[y].Count; x++)
-        {
-            clone[y].Add(original[y][x]);
-        }
-    }
-    return clone;
 }
 
 static void PrintCheats(Dictionary<(int x, int y), int> cheats)
