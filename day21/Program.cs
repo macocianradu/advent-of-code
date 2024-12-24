@@ -2,14 +2,17 @@
 
 using day21;
 
-var input = File.ReadAllLines("input/input1.txt");
+var input = File.ReadAllLines("input/test1.txt");
 
 var result = 0;
 foreach (var line in input)
 {
     var keypad = new Keypad();
-    var robot = new Robot();
-    var robot2 = new Robot();
+    var robots = new List<Robot>();
+    for (var i = 0; i < 25; i++)
+    {
+        robots.Add(new Robot());
+    }
     StringBuilder sequence = new();
     foreach (var c in line)
     {
@@ -21,7 +24,7 @@ foreach (var line in input)
         var y1 = keypad.Y;
         if (seq is not null)
         {
-            sequence1 = robot.MoveRobot(seq, robot2);
+            sequence1 = robots[0].MoveRobot(seq, robots.Skip(1).ToList());
         }
         keypad.X = x;
         keypad.Y = y;
@@ -34,7 +37,7 @@ foreach (var line in input)
             keypad.Y = y1;
             continue;
         }
-        sequence2 = robot.MoveRobot(seq, robot2);
+        sequence2 = robots[0].MoveRobot(seq, robots.Skip(1).ToList());
         if (sequence1.Length > 0 && sequence1.Length < sequence2.Length)
         {
             sequence.Append(sequence1);

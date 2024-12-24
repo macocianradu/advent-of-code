@@ -4,14 +4,20 @@ namespace day21;
 
 public class Robot
 {
+    static Dictionary<(string, int), string> cache = new ();
     public int X { get; set; } = 2;
     public int Y { get; set; } = 0;
 
-    public string MoveRobot(string s, Robot robot)
+    public string MoveRobot(string s, List<Robot> robots)
     {
+        if (cache.ContainsKey((s, robots.Count)))
+        {
+            return cache[(s, robots.Count)];
+        }
         StringBuilder seq = new();
         foreach (var m in s)
         {
+            var robot = robots[0];
             var x = robot.X;
             var y = robot.Y;
             var seq1 = robot.MoveRowCol(m);
@@ -20,7 +26,14 @@ public class Robot
             string seq1Res = "";
             if (seq1 is not null)
             {
-                seq1Res = MoveString(seq1);
+                if (robots.Count > 2)
+                {
+                    seq1Res = MoveRobot(seq1, robots.Skip(1).ToList());
+                }
+                else
+                {
+                    seq1Res = MoveString(seq1);
+                }
             }
             robot.X = x;
             robot.Y = y;
@@ -33,8 +46,15 @@ public class Robot
                 seq.Append(seq1Res);
                 continue;
             }
-            seq2Res = MoveString(seq2);
 
+            if (robots.Count > 2)
+            {
+                seq2Res = MoveRobot(seq2, robots.Skip(1).ToList());
+            }
+            else
+            {
+                seq2Res = MoveString(seq2);
+            }
             if (seq1Res.Length > 0 && seq1Res.Length < seq2Res.Length)
             {
                 robot.X = x1;
@@ -44,6 +64,8 @@ public class Robot
             }
             seq.Append(seq2Res);
         }
+
+        cache.Add((s, robots.Count), seq.ToString());
         return seq.ToString();
     }
 
