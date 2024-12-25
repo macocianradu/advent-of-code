@@ -2,56 +2,87 @@
 
 using day21;
 
-var input = File.ReadAllLines("input/test1.txt");
+var input = File.ReadAllLines("input/input1.txt");
+Dictionary<(char start, char end, int step), long> cache = new();
 
-var result = 0;
+var result = 0L;
 foreach (var line in input)
 {
-    var keypad = new Keypad();
-    var robots = new List<Robot>();
-    for (var i = 0; i < 25; i++)
-    {
-        robots.Add(new Robot());
-    }
-    StringBuilder sequence = new();
+    var length = 0L;
+    var s = 'A';
     foreach (var c in line)
     {
-        var x = keypad.X;
-        var y = keypad.Y;
-        var sequence1 = "";
-        var seq = keypad.MoveRowCol(c);
-        var x1 = keypad.X;
-        var y1 = keypad.Y;
-        if (seq is not null)
-        {
-            sequence1 = robots[0].MoveRobot(seq, robots.Skip(1).ToList());
-        }
-        keypad.X = x;
-        keypad.Y = y;
-        seq = keypad.MoveColRow(c);
-        var sequence2 = "";
-        if (seq is null)
-        {
-            sequence.Append(sequence1);
-            keypad.X = x1;
-            keypad.Y = y1;
-            continue;
-        }
-        sequence2 = robots[0].MoveRobot(seq, robots.Skip(1).ToList());
-        if (sequence1.Length > 0 && sequence1.Length < sequence2.Length)
-        {
-            sequence.Append(sequence1);
-            keypad.X = x1;
-            keypad.Y = y1;
-            continue;
-        }
-        sequence.Append(sequence2);
+        length += GetLength(s, c, 25, Keypad.Map);
+        s = c;
     }
-    Console.Write(sequence.ToString());
-    Console.WriteLine(": " + sequence.Length + " * " + int.Parse(line[..^1]));
+    Console.WriteLine(": " + length + " * " + int.Parse(line[..^1]));
 
-    result += sequence.Length * int.Parse(line[..^1]);
+    result += length * int.Parse(line[..^1]);
 }
 
+long GetLength(char start, char end, int step, Dictionary<(char start, char end), List<string>> map)
+{
+    if (cache.TryGetValue((start, end, step), out var result))
+    {
+        return result;
+    }
+    if (step == 0)
+    {
+        return map[(start, end)][0].Length + 1;
+    }
+    var min = long.MaxValue;
+    foreach (var possible in map[(start, end)])
+    {
+        var s = 'A';
+        var length = 0L;
+        var seq = possible.Append('A');
+        foreach (var c in seq)
+        {
+            length += GetLength(s, c, step - 1, Robot.Map);
+            s = c;
+        }
+        if (length < min)
+        {
+            min = length;
+        }
+    }
+    cache.Add((start, end, step), min);
+
+    return min;
+}
+
+//long GetLength(char start, char end, int step)
+//{
+//    if (cache.TryGetValue((start, end, step), out var result))
+//    {
+//        return result;
+//    }
+//    if (step == 0)
+//    {
+//        return Robot.Map[(start, end)][0].Length + 1;
+//    }
+//
+//    long min = long.MaxValue;
+//    foreach (var possible in Robot.Map[(start, end)])
+//    {
+//        var s = 'A';
+//        var length = 0L;
+//        foreach (var c in possible)
+//        {
+//            length += GetLength(s, c, step - 1);
+//            s = c;
+//        }
+//        length += GetLength(s, 'A', step - 1);
+//
+//        if (length < min)
+//        {
+//        Console.WriteLine(possible);
+//            min = length;
+//        }
+//    }
+//    cache.Add((start, end, step), min);
+//
+//    return min;
+//}
 
 Console.WriteLine(result);
